@@ -58,6 +58,9 @@ apiClient.interceptors.request.use(
 export function parseApiError(error: unknown, fallback = 'Request failed. Please try again.'): Error {
   if (error instanceof AxiosError) {
     const data = error.response?.data;
+    if (error.response?.status === 429) {
+      return new Error('Too many requests. Please wait a moment and try again.');
+    }
     if (data) {
       if (Array.isArray(data.errors) && data.errors.length > 0) {
         return new Error(data.errors.join(' '));

@@ -86,7 +86,11 @@ export default function ContactForm() {
   useEffect(() => {
     if (!showThankYou) return;
 
-    const previousOverflow = document.body.style.overflow;
+    const root = document.documentElement;
+    const previousRootOverflow = root.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+
+    root.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -98,7 +102,8 @@ export default function ContactForm() {
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      root.style.overflow = previousRootOverflow;
+      document.body.style.overflow = previousBodyOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [showThankYou]);
@@ -300,7 +305,7 @@ export default function ContactForm() {
             aria-modal="true"
             aria-labelledby="thank-you-title"
             aria-describedby="thank-you-description"
-            className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white p-7 text-center shadow-2xl ring-1 ring-gold-300 sm:p-10"
+            className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-7 text-center shadow-2xl ring-1 ring-gold-300 sm:p-10"
           >
             {/* Decorative top accent */}
             <div className="absolute left-0 top-0 h-1.5 w-full bg-gradient-to-r from-navy-900 via-gold-400 to-navy-900" />
