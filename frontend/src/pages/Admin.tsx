@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AlertCircle,
@@ -13,26 +13,21 @@ import {
   Eye,
   EyeOff,
   FileText,
-  Filter,
   Lock,
   LogOut,
   Mail,
-  Menu,
   MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
   RefreshCw,
   Search,
-  Shield,
-  ShieldAlert,
   ShieldCheck,
   Trash2,
   User,
   UserCheck,
   Users,
   X,
-  XCircle,
 } from 'lucide-react';
 import { FOUNDATION } from '@/data/site';
 import useDocumentTitle from '@/hooks/useDocumentTitle';
@@ -47,76 +42,6 @@ import type {
 } from '@/types/api';
 
 type Tab = 'overview' | 'members' | 'payments' | 'notifications' | 'enquiries' | 'audit';
-
-const categoryChartColors = ['#0B1F4D', '#F0B429', '#34D399', '#8B5CF6', '#F97316', '#38BDF8', '#FB7185'];
-
-function CategoryPieChart({ data }: { data: Record<string, number> }) {
-  const entries = Object.entries(data).filter(([, value]) => value > 0);
-  const total = entries.reduce((sum, [, value]) => sum + value, 0);
-
-  if (!entries.length || total === 0) {
-    return null;
-  }
-
-  const radius = 52;
-  const circumference = 2 * Math.PI * radius;
-  let cumulative = 0;
-
-  const segments = entries.map(([label, value], index) => {
-    const start = cumulative / total;
-    const end = (cumulative + value) / total;
-    cumulative += value;
-
-    const length = (end - start) * circumference;
-    const color = categoryChartColors[index % categoryChartColors.length];
-
-    return { label, value, color, length, offset: -start * circumference };
-  });
-
-  return (
-    <div className="grid gap-4 md:grid-cols-[180px_1fr]">
-      <div className="flex items-center justify-center">
-        <div className="relative flex h-36 w-36 items-center justify-center">
-          <svg viewBox="0 0 160 160" className="h-36 w-36 -rotate-90" aria-label="Members by category pie chart">
-            <circle cx="80" cy="80" r={radius} fill="none" stroke="#EAF0F7" strokeWidth="22" />
-            {segments.map((segment) => (
-              <circle
-                key={segment.label}
-                cx="80"
-                cy="80"
-                r={radius}
-                fill="none"
-                stroke={segment.color}
-                strokeWidth="22"
-                strokeLinecap="round"
-                strokeDasharray={`${segment.length} ${circumference - segment.length}`}
-                strokeDashoffset={segment.offset}
-              />
-            ))}
-          </svg>
-          <div className="absolute text-center">
-            <div className="text-xl font-black text-navy-900">{total}</div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted">Members</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        {segments.map((segment) => (
-          <div key={segment.label} className="flex items-center justify-between rounded-2xl bg-mist px-3 py-2.5">
-            <div className="flex items-center gap-2.5">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: segment.color }} />
-              <span className="text-xs font-semibold text-navy-900">{segment.label}</span>
-            </div>
-            <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-navy-900 shadow-sm ring-1 ring-navy-100">
-              {segment.value}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export default function Admin() {
   useDocumentTitle('Admin Portal - Membership & Operations Management');
@@ -146,9 +71,7 @@ export default function Admin() {
   const [membersPage, setMembersPage] = useState(1);
   const [membersLoading, setMembersLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [paymentFilter, setPaymentFilter] = useState('');
 
   // Add Member Modal
   const [showAddModal, setShowAddModal] = useState(false);
@@ -186,7 +109,6 @@ export default function Admin() {
 
   // Payments Tab
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
-  const [paymentsTotal, setPaymentsTotal] = useState(0);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
 
   // Notifications Tab
@@ -234,16 +156,7 @@ export default function Admin() {
   }, [token]);
 
   // Load Tab Data
-  useEffect(() => {
-    if (!token) return;
-    if (activeTab === 'overview') loadStats();
-    if (activeTab === 'members') loadMembers();
-    if (activeTab === 'payments') loadPayments();
-    if (activeTab === 'notifications') loadNotifications();
-    if (activeTab === 'enquiries') loadEnquiries();
-  }, [token, activeTab]);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     setStatsLoading(true);
     try {
       const data = await api.admin.getStats();
@@ -253,18 +166,16 @@ export default function Admin() {
     } finally {
       setStatsLoading(false);
     }
-  };
+  }, []);
 
-  const loadMembers = async (page = 1) => {
+  const loadMembers = useCallback(async (page = 1) => {
     setMembersLoading(true);
     try {
       const res = await api.admin.getMembers({
         page,
         limit: 12,
         q: searchQuery.trim() || undefined,
-        category: categoryFilter || undefined,
         membership_status: statusFilter || undefined,
-        payment_status: paymentFilter || undefined,
       });
       setMembers(res.members);
       setMembersTotal(res.total);
@@ -274,22 +185,21 @@ export default function Admin() {
     } finally {
       setMembersLoading(false);
     }
-  };
+  }, [searchQuery, statusFilter]);
 
-  const loadPayments = async () => {
+  const loadPayments = useCallback(async () => {
     setPaymentsLoading(true);
     try {
       const res = await api.admin.getPayments();
       setPayments(res.payments);
-      setPaymentsTotal(res.total);
     } catch (err) {
       setActionMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to load payments' });
     } finally {
       setPaymentsLoading(false);
     }
-  };
+  }, []);
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     setNotificationLoading(true);
     try {
       const [data, memberData] = await Promise.all([
@@ -303,7 +213,41 @@ export default function Admin() {
     } finally {
       setNotificationLoading(false);
     }
-  };
+  }, []);
+
+  const loadEnquiries = useCallback(async () => {
+    setEnquiriesLoading(true);
+    try {
+      const data = await api.admin.getEnquiries();
+      setEnquiries(data);
+    } catch (err) {
+      setActionMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to load enquiries' });
+    } finally {
+      setEnquiriesLoading(false);
+    }
+  }, []);
+
+  const loadAuditLogs = useCallback(async () => {
+    setAuditLoading(true);
+    try {
+      const res = await api.admin.getAuditLogs({ limit: 40 });
+      setAuditLogs(res.logs);
+    } catch (err) {
+      setActionMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to load audit logs' });
+    } finally {
+      setAuditLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    if (activeTab === 'overview') loadStats();
+    if (activeTab === 'members') loadMembers();
+    if (activeTab === 'payments') loadPayments();
+    if (activeTab === 'notifications') loadNotifications();
+    if (activeTab === 'enquiries') loadEnquiries();
+    if (activeTab === 'audit') loadAuditLogs();
+  }, [token, activeTab, loadStats, loadMembers, loadPayments, loadNotifications, loadEnquiries, loadAuditLogs]);
 
   const handleSendNotification = async (e: FormEvent) => {
     e.preventDefault();
@@ -325,30 +269,6 @@ export default function Admin() {
       setActionMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to send notification' });
     } finally {
       setNotificationLoading(false);
-    }
-  };
-
-  const loadEnquiries = async () => {
-    setEnquiriesLoading(true);
-    try {
-      const data = await api.admin.getEnquiries();
-      setEnquiries(data);
-    } catch (err) {
-      setActionMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to load enquiries' });
-    } finally {
-      setEnquiriesLoading(false);
-    }
-  };
-
-  const loadAuditLogs = async () => {
-    setAuditLoading(true);
-    try {
-      const res = await api.admin.getAuditLogs({ limit: 40 });
-      setAuditLogs(res.logs);
-    } catch (err) {
-      setActionMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to load audit logs' });
-    } finally {
-      setAuditLoading(false);
     }
   };
 
@@ -404,16 +324,6 @@ export default function Admin() {
       loadMembers(membersPage);
     } catch (err) {
       setActionMessage({ type: 'error', text: err instanceof Error ? err.message : 'Status update failed' });
-    }
-  };
-
-  const handlePaymentStatusChange = async (member: PublicMember, paymentStatus: string) => {
-    try {
-      await api.admin.updatePayment(member.id, { payment_status: paymentStatus });
-      setActionMessage({ type: 'success', text: `Payment status updated for ${member.name}.` });
-      loadMembers(membersPage);
-    } catch (err) {
-      setActionMessage({ type: 'error', text: err instanceof Error ? err.message : 'Payment update failed' });
     }
   };
 
