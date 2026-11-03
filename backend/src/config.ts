@@ -9,20 +9,36 @@ const env = process.env;
 const list = (v: string | undefined, fallback: string): string[] =>
   (v || fallback).split(',').map(s => s.trim()).filter(Boolean);
 
+const isProd = env.NODE_ENV === 'production';
+const devFallbackOrigins = 'http://localhost:5173,http://localhost:4173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:4173,http://127.0.0.1:3000';
+
 const secretIsSet = !!env.JWT_SECRET && !env.JWT_SECRET.startsWith('change-this');
+if (!secretIsSet && isProd) {
+  throw new Error('Set a strong JWT_SECRET before running in production.');
+}
 if (!secretIsSet) {
-  if (env.NODE_ENV === 'production') throw new Error('Set a strong JWT_SECRET before running in production.');
   console.warn('WARNING: set a strong JWT_SECRET in .env before going live.');
+}
+
+const adminUsername = env.ADMIN_USERNAME || (isProd ? '' : 'admin');
+const adminPassword = env.ADMIN_PASSWORD || (isProd ? '' : 'ChangeMe123!');
+if (isProd && (!adminUsername || !adminPassword)) {
+  throw new Error('Set ADMIN_USERNAME and ADMIN_PASSWORD in production before starting the server.');
+}
+
+const corsOriginString = env.CORS_ORIGIN || (isProd ? '' : devFallbackOrigins);
+if (isProd && !corsOriginString) {
+  throw new Error('Set CORS_ORIGIN to a trusted allowlist before running in production.');
 }
 
 export const config = {
   port: Number(env.PORT) || 3000,
   jwtSecret: secretIsSet ? (env.JWT_SECRET as string) : 'dev-only-secret',
-  adminUsername: env.ADMIN_USERNAME || 'admin',
-  adminPassword: env.ADMIN_PASSWORD || 'ChangeMe123!',
+  adminUsername,
+  adminPassword,
   memberIdPrefix: env.MEMBER_ID_PREFIX || 'MEM',
   categories: list(env.MEMBERSHIP_CATEGORIES, 'Life,Annual,Student,Corporate,Honorary'),
-  corsOrigins: list(env.CORS_ORIGIN, '*'),
+  corsOrigins: list(corsOriginString, isProd ? '' : devFallbackOrigins),
   baseUrl: (env.PUBLIC_BASE_URL || '').replace(/\/$/, ''),
   site: {
     name: env.FOUNDATION_NAME || 'Our Foundation',

@@ -23,7 +23,15 @@ app.use(
 );
 
 // Cross-Origin Resource Sharing
-app.use(cors({ origin: config.corsOrigins.includes('*') ? true : config.corsOrigins }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const allowedOrigins = new Set(config.corsOrigins);
+    if (allowedOrigins.has(origin)) return callback(null, true);
+    return callback(new Error(`Origin ${origin} is not allowed by CORS.`));
+  },
+  credentials: true,
+}));
 
 // Request body size limit
 app.use(express.json({ limit: '100kb' }));

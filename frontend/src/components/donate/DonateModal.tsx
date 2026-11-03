@@ -41,7 +41,7 @@ export default function DonateModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-5">
+    <div className="fixed inset-0 z-[40] flex items-end justify-center sm:items-center sm:p-5">
 
       {/* Background Overlay */}
       <button
