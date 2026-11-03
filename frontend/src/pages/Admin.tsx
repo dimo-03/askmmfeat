@@ -9,7 +9,6 @@ import {
   Clock,
   CreditCard,
   Download,
-  Edit3,
   ExternalLink,
   Eye,
   EyeOff,
@@ -19,6 +18,7 @@ import {
   LogOut,
   Mail,
   Menu,
+  MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
@@ -70,13 +70,7 @@ function CategoryPieChart({ data }: { data: Record<string, number> }) {
     const length = (end - start) * circumference;
     const color = categoryChartColors[index % categoryChartColors.length];
 
-    return {
-      label,
-      value,
-      color,
-      length,
-      offset: -start * circumference,
-    };
+    return { label, value, color, length, offset: -start * circumference };
   });
 
   return (
@@ -161,10 +155,8 @@ export default function Admin() {
   const [newMemberName, setNewMemberName] = useState('');
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [newMemberMobile, setNewMemberMobile] = useState('');
-  const [newMemberCategory, setNewMemberCategory] = useState('Life');
   const [newMemberLocation, setNewMemberLocation] = useState('Bhubaneswar');
   const [newMemberDesignation, setNewMemberDesignation] = useState('Member');
-  const [newMemberPaymentMethod, setNewMemberPaymentMethod] = useState<'cash' | 'online'>('cash');
   const [newMemberPaymentReference, setNewMemberPaymentReference] = useState('');
   const [newMemberPaymentAmount, setNewMemberPaymentAmount] = useState('');
   const [newMemberPhoto, setNewMemberPhoto] = useState<File | null>(null);
@@ -175,7 +167,6 @@ export default function Admin() {
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editMobile, setEditMobile] = useState('');
-  const [editCategory, setEditCategory] = useState('Life');
   const [editLocation, setEditLocation] = useState('');
   const [editDesignation, setEditDesignation] = useState('');
   const [editValidityStart, setEditValidityStart] = useState('');
@@ -187,7 +178,6 @@ export default function Admin() {
   const [editNotes, setEditNotes] = useState('');
   const [editMembershipStatus, setEditMembershipStatus] = useState('Approved');
   const [editIsActive, setEditIsActive] = useState<number>(1);
-  const [editPaymentMethod, setEditPaymentMethod] = useState<'cash' | 'online'>('cash');
   const [editPaymentReference, setEditPaymentReference] = useState('');
   const [editPaymentAmount, setEditPaymentAmount] = useState('');
   const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null);
@@ -198,7 +188,6 @@ export default function Admin() {
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [paymentsTotal, setPaymentsTotal] = useState(0);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState('');
 
   // Notifications Tab
   const [notificationTitle, setNotificationTitle] = useState('');
@@ -252,7 +241,6 @@ export default function Admin() {
     if (activeTab === 'payments') loadPayments();
     if (activeTab === 'notifications') loadNotifications();
     if (activeTab === 'enquiries') loadEnquiries();
-    if (activeTab === 'audit') loadAuditLogs();
   }, [token, activeTab]);
 
   const loadStats = async () => {
@@ -291,7 +279,7 @@ export default function Admin() {
   const loadPayments = async () => {
     setPaymentsLoading(true);
     try {
-      const res = await api.admin.getPayments({ method: paymentMethodFilter || undefined });
+      const res = await api.admin.getPayments();
       setPayments(res.payments);
       setPaymentsTotal(res.total);
     } catch (err) {
@@ -450,10 +438,8 @@ export default function Admin() {
       fd.append('name', newMemberName.trim());
       fd.append('email', newMemberEmail.trim());
       fd.append('mobile', newMemberMobile.trim());
-      fd.append('category', newMemberCategory);
       fd.append('location', newMemberLocation.trim());
       fd.append('designation', newMemberDesignation.trim());
-      fd.append('payment_method', newMemberPaymentMethod);
       if (newMemberPaymentReference.trim()) {
         fd.append('payment_reference', newMemberPaymentReference.trim());
       }
@@ -470,7 +456,6 @@ export default function Admin() {
       setNewMemberName('');
       setNewMemberEmail('');
       setNewMemberMobile('');
-      setNewMemberPaymentMethod('cash');
       setNewMemberPaymentReference('');
       setNewMemberPaymentAmount('');
       setNewMemberPhoto(null);
@@ -489,7 +474,6 @@ export default function Admin() {
       setEditName(full.name || '');
       setEditEmail(full.email || '');
       setEditMobile(full.mobile || '');
-      setEditCategory(full.category || 'Life');
       setEditLocation(full.location || '');
       setEditDesignation(full.designation || 'Member');
       setEditValidityStart(full.validity_start || '');
@@ -501,7 +485,6 @@ export default function Admin() {
       setEditNotes(full.notes || '');
       setEditMembershipStatus(full.membership_status || 'Approved');
       setEditIsActive(full.is_active ?? 1);
-      setEditPaymentMethod(full.payment_method === 'online' ? 'online' : 'cash');
       setEditPaymentReference(full.payment_reference || '');
       setEditPaymentAmount(full.payment_amount ? String(full.payment_amount) : '');
       setEditPhotoPreview(full.photo || null);
@@ -523,7 +506,6 @@ export default function Admin() {
       fd.append('name', editName.trim());
       fd.append('email', editEmail.trim());
       fd.append('mobile', editMobile.trim());
-      fd.append('category', editCategory);
       fd.append('location', editLocation.trim());
       fd.append('designation', editDesignation.trim());
       if (editValidityStart) fd.append('validity_start', editValidityStart);
@@ -535,7 +517,6 @@ export default function Admin() {
       if (editNotes) fd.append('notes', editNotes.trim());
       fd.append('membership_status', editMembershipStatus);
       fd.append('is_active', String(editIsActive));
-      fd.append('payment_method', editPaymentMethod);
       if (editPaymentReference.trim()) {
         fd.append('payment_reference', editPaymentReference.trim());
       } else {
@@ -632,7 +613,6 @@ export default function Admin() {
       count: enquiries.filter((e) => e.is_read === 0).length || undefined,
       badgeColor: 'bg-gold-400 text-navy-900',
     },
-    { id: 'audit', label: 'Audit Logs', icon: FileText, count: undefined },
   ];
 
   // ----------------------------------------------------
@@ -938,7 +918,6 @@ export default function Admin() {
                 {activeTab === 'payments' && 'Payment Records'}
                  {activeTab === 'notifications' && 'Notifications'}
                 {activeTab === 'enquiries' && 'Inquiries & Messages'}
-                {activeTab === 'audit' && 'Security & Audit Trail'}
               </h2>
             </div>
           </div>
@@ -1001,16 +980,6 @@ export default function Admin() {
               </button>
             )}
 
-            {activeTab === 'audit' && (
-              <button
-                onClick={loadAuditLogs}
-                disabled={auditLoading}
-                className="flex items-center gap-1.5 rounded-full border border-navy-700 bg-navy-800 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-navy-700 hover:text-gold-300"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${auditLoading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
-              </button>
-            )}
           </div>
         </header>
 
@@ -1095,39 +1064,6 @@ export default function Admin() {
                 </div>
               </div>
 
-              {/* Category Breakdown & Payment Methods */}
-              <div className="grid gap-6 lg:grid-cols-2">
-                <div className="rounded-3xl bg-white p-6 shadow-card ring-1 ring-navy-100">
-                  <h3 className="text-base font-bold text-navy-900">Members by Category</h3>
-                  {stats?.byCategory && Object.keys(stats.byCategory).length > 0 ? (
-                    <div className="mt-4">
-                      <CategoryPieChart data={stats.byCategory} />
-                    </div>
-                  ) : (
-                    <p className="mt-4 text-sm text-muted">No categorized members found.</p>
-                  )}
-                </div>
-
-                <div className="rounded-3xl bg-white p-6 shadow-card ring-1 ring-navy-100">
-                  <h3 className="text-base font-bold text-navy-900">Payment Collection Breakdown</h3>
-                  <div className="mt-4 flex flex-col gap-3">
-                    <div className="flex items-center justify-between rounded-2xl bg-emerald-50 px-4 py-3">
-                      <span className="text-xs font-semibold text-emerald-900">Paid Transactions</span>
-                      <span className="text-xs font-bold text-emerald-800">{stats?.payments?.paid_count ?? 0}</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-2xl bg-amber-50 px-4 py-3">
-                      <span className="text-xs font-semibold text-amber-900">Pending Payments</span>
-                      <span className="text-xs font-bold text-amber-800">{stats?.payments?.pending_count ?? 0}</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-2xl bg-navy-50 px-4 py-3">
-                      <span className="text-xs font-semibold text-navy-900">Total Collected</span>
-                      <span className="text-xs font-bold text-navy-900">
-                        ₹{(stats?.payments?.total_paid_amount ?? 0).toLocaleString('en-IN')}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 
@@ -1151,22 +1087,6 @@ export default function Admin() {
                 </div>
 
                 <select
-                  value={categoryFilter}
-                  onChange={(e) => {
-                    setCategoryFilter(e.target.value);
-                    setTimeout(() => loadMembers(1), 0);
-                  }}
-                  className="rounded-2xl border border-navy-200 bg-mist px-3 py-2.5 text-xs text-navy-900 outline-none"
-                >
-                  <option value="">All Categories</option>
-                  <option value="Life">Life</option>
-                  <option value="Annual">Annual</option>
-                  <option value="Student">Student</option>
-                  <option value="Corporate">Corporate</option>
-                  <option value="Honorary">Honorary</option>
-                </select>
-
-                <select
                   value={statusFilter}
                   onChange={(e) => {
                     setStatusFilter(e.target.value);
@@ -1179,20 +1099,6 @@ export default function Admin() {
                   <option value="Pending">Pending</option>
                   <option value="Suspended">Suspended</option>
                   <option value="Expired">Expired</option>
-                </select>
-
-                <select
-                  value={paymentFilter}
-                  onChange={(e) => {
-                    setPaymentFilter(e.target.value);
-                    setTimeout(() => loadMembers(1), 0);
-                  }}
-                  className="rounded-2xl border border-navy-200 bg-mist px-3 py-2.5 text-xs text-navy-900 outline-none"
-                >
-                  <option value="">All Payments</option>
-                  <option value="Paid">Paid</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Failed">Failed</option>
                 </select>
 
                 <button
@@ -1211,11 +1117,9 @@ export default function Admin() {
                       <tr>
                         <th className="py-4 pl-6 pr-3">Member</th>
                         <th className="px-3 py-4">ID</th>
-                        <th className="px-3 py-4">Category</th>
                         <th className="px-3 py-4">Location</th>
                         <th className="px-3 py-4">Status</th>
                         <th className="px-3 py-4">Active</th>
-                        <th className="px-3 py-4">Payment</th>
                         <th className="py-4 pl-3 pr-6 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -1259,13 +1163,6 @@ export default function Admin() {
 
                             {/* Membership ID */}
                             <td className="px-3 py-4 font-mono font-semibold text-navy-900">{m.membership_id}</td>
-
-                            {/* Category */}
-                            <td className="px-3 py-4">
-                              <span className="rounded-full bg-navy-100 px-2.5 py-1 text-[11px] font-semibold text-navy-900">
-                                {m.category}
-                              </span>
-                            </td>
 
                             {/* Location */}
                             <td className="px-3 py-4 text-muted">{m.location || '—'}</td>
@@ -1311,42 +1208,16 @@ export default function Admin() {
                               </button>
                             </td>
 
-                            {/* Payment */}
-                            <td className="px-3 py-4">
-                              <div className="flex flex-col gap-1">
-                                <select
-                                  value={m.payment_status || 'Pending'}
-                                  onChange={(e) => handlePaymentStatusChange(m, e.target.value)}
-                                  className={`rounded-full px-2 py-0.5 text-[11px] font-semibold outline-none ${
-                                    m.payment_status === 'Paid'
-                                      ? 'bg-emerald-50 text-emerald-800'
-                                      : 'bg-amber-50 text-amber-800'
-                                  }`}
-                                >
-                                  <option value="Paid">Paid</option>
-                                  <option value="Pending">Pending</option>
-                                  <option value="Failed">Failed</option>
-                                </select>
-                                {m.payment_amount !== undefined && m.payment_amount !== null && Number(m.payment_amount) > 0 && (
-                                  <div className="flex items-center gap-1 text-[10px] font-bold text-navy-900">
-                                    <span>₹{Number(m.payment_amount).toLocaleString('en-IN')}</span>
-                                    <span className="text-[9px] text-muted capitalize">
-                                      ({m.payment_method === 'online' ? 'Online' : 'Cash'})
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-
                             {/* Actions: Edit & Delete */}
                             <td className="py-4 pl-3 pr-6 text-right">
                               <div className="flex items-center justify-end gap-1">
                                 <button
                                   onClick={() => openEditModal(m)}
-                                  className="rounded-xl p-2 text-navy-700 transition hover:bg-gold-50 hover:text-gold-700"
-                                  title="Edit Member Details"
+                                  className="inline-flex items-center justify-center rounded-xl border border-navy-200 bg-white p-2 text-navy-700 transition hover:bg-gold-50 hover:text-gold-700"
+                                  title="View Member Details"
+                                  aria-label="View member details"
                                 >
-                                  <Edit3 className="h-4 w-4" />
+                                  <MoreHorizontal className="h-4 w-4" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteMember(m)}
@@ -1397,25 +1268,7 @@ export default function Admin() {
           {/* ========================================================= */}
           {activeTab === 'payments' && (
             <div className="flex flex-col gap-6">
-              <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-white p-4 shadow-card ring-1 ring-navy-100">
-                <Filter className="h-4 w-4 text-gold-600" />
-                <label className="text-xs font-bold text-navy-800" htmlFor="payment-method-filter">Payment method</label>
-                <select
-                  id="payment-method-filter"
-                  value={paymentMethodFilter}
-                  onChange={(event) => {
-                    setPaymentMethodFilter(event.target.value);
-                    void api.admin.getPayments({ method: event.target.value || undefined }).then((res) => {
-                      setPayments(res.payments);
-                      setPaymentsTotal(res.total);
-                    });
-                  }}
-                  className="rounded-xl border border-navy-200 bg-white px-4 py-2 text-xs font-semibold text-navy-900 outline-none focus:border-gold-500"
-                >
-                  <option value="">All methods</option>
-                  <option value="cash">Cash / Offline</option>
-                  <option value="online">Online</option>
-                </select>
+              <div className="flex justify-end rounded-2xl bg-white p-4 shadow-card ring-1 ring-navy-100">
                 <button
                   onClick={exportPaymentsExcel}
                   className="ml-auto flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100"
@@ -1740,31 +1593,15 @@ export default function Admin() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold uppercase tracking-wider text-navy-900">Category *</label>
-                  <select
-                    value={newMemberCategory}
-                    onChange={(e) => setNewMemberCategory(e.target.value)}
-                    className="mt-1 w-full rounded-2xl border border-navy-200 bg-mist px-3 py-2.5 text-navy-900 outline-none focus:border-gold-500 focus:bg-white"
-                  >
-                    <option value="Life">Life</option>
-                    <option value="Annual">Annual</option>
-                    <option value="Student">Student</option>
-                    <option value="Corporate">Corporate</option>
-                    <option value="Honorary">Honorary</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-bold uppercase tracking-wider text-navy-900">Location</label>
-                  <input
-                    type="text"
-                    value={newMemberLocation}
-                    onChange={(e) => setNewMemberLocation(e.target.value)}
-                    placeholder="e.g. Bhubaneswar, Odisha"
-                    className="mt-1 w-full rounded-2xl border border-navy-200 bg-mist px-4 py-2.5 text-navy-900 outline-none focus:border-gold-500 focus:bg-white"
-                  />
-                </div>
+              <div>
+                <label className="block font-bold uppercase tracking-wider text-navy-900">Location</label>
+                <input
+                  type="text"
+                  value={newMemberLocation}
+                  onChange={(e) => setNewMemberLocation(e.target.value)}
+                  placeholder="e.g. Bhubaneswar, Odisha"
+                  className="mt-1 w-full rounded-2xl border border-navy-200 bg-mist px-4 py-2.5 text-navy-900 outline-none focus:border-gold-500 focus:bg-white"
+                />
               </div>
 
               <div>
@@ -1778,106 +1615,6 @@ export default function Admin() {
                 />
               </div>
 
-              {/* Payment Method: Online or Cash */}
-              <div className="rounded-2xl border border-navy-100 bg-mist/60 p-4">
-                <label className="block font-bold uppercase tracking-wider text-navy-900">
-                  Payment Method *
-                </label>
-                <div className="mt-2.5 grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setNewMemberPaymentMethod('cash')}
-                    className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all ${
-                      newMemberPaymentMethod === 'cash'
-                        ? 'bg-navy-900 text-white shadow-sm ring-2 ring-gold-400'
-                        : 'border border-navy-200 bg-white text-navy-900 hover:bg-navy-50'
-                    }`}
-                  >
-                    <span>💵 Cash</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setNewMemberPaymentMethod('online')}
-                    className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all ${
-                      newMemberPaymentMethod === 'online'
-                        ? 'bg-navy-900 text-white shadow-sm ring-2 ring-gold-400'
-                        : 'border border-navy-200 bg-white text-navy-900 hover:bg-navy-50'
-                    }`}
-                  >
-                    <span>💳 Online</span>
-                  </button>
-                </div>
-
-                {/* If Online: Show Transaction ID / Reference No. & Amount */}
-                {newMemberPaymentMethod === 'online' && (
-                  <div className="mt-3.5 space-y-3 border-t border-navy-200/60 pt-3">
-                    <div>
-                      <label className="block font-bold uppercase tracking-wider text-navy-900">
-                        Transaction ID / Reference No. *
-                      </label>
-                      <input
-                        type="text"
-                        required={newMemberPaymentMethod === 'online'}
-                        value={newMemberPaymentReference}
-                        onChange={(e) => setNewMemberPaymentReference(e.target.value)}
-                        placeholder="e.g. UPI / UTR / TXN12345678"
-                        className="mt-1 w-full rounded-2xl border border-navy-200 bg-white px-4 py-2.5 text-xs text-navy-900 outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-200"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold uppercase tracking-wider text-navy-900">
-                        Amount Paid (₹) (Optional)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        value={newMemberPaymentAmount}
-                        onChange={(e) => setNewMemberPaymentAmount(e.target.value)}
-                        placeholder="e.g. 5000"
-                        className="mt-1 w-full rounded-2xl border border-navy-200 bg-white px-4 py-2.5 text-xs text-navy-900 outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-200"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* If Cash: Amount Collected & Receipt No */}
-                {newMemberPaymentMethod === 'cash' && (
-                  <div className="mt-3.5 space-y-3 border-t border-navy-200/60 pt-3">
-                    <div>
-                      <label className="block font-bold uppercase tracking-wider text-navy-900">
-                        Cash Amount Collected (₹) *
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        required={newMemberPaymentMethod === 'cash'}
-                        value={newMemberPaymentAmount}
-                        onChange={(e) => setNewMemberPaymentAmount(e.target.value)}
-                        placeholder="e.g. 5000"
-                        className="mt-1 w-full rounded-2xl border border-navy-200 bg-white px-4 py-2.5 text-xs text-navy-900 outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-200"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold uppercase tracking-wider text-navy-900">
-                        Cash Receipt / Voucher No. (Optional)
-                      </label>
-                      <input
-                        type="text"
-                        value={newMemberPaymentReference}
-                        onChange={(e) => setNewMemberPaymentReference(e.target.value)}
-                        placeholder="e.g. CASH-RCPT-2026-001"
-                        className="mt-1 w-full rounded-2xl border border-navy-200 bg-white px-4 py-2.5 text-xs text-navy-900 outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-200"
-                      />
-                    </div>
-                    <p className="text-[11px] font-medium text-muted">
-                      Payment collected in cash at the registration desk / cash-in-hand.
-                    </p>
-                  </div>
-                )}
-              </div>
 
               <div>
                 <label className="block font-bold uppercase tracking-wider text-navy-900">Photo (Optional)</label>
@@ -2015,31 +1752,15 @@ export default function Admin() {
                 </div>
               </div>
 
-              {/* Category & Location */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold uppercase tracking-wider text-navy-900">Category *</label>
-                  <select
-                    value={editCategory}
-                    onChange={(e) => setEditCategory(e.target.value)}
-                    className="mt-1 w-full rounded-2xl border border-navy-200 bg-mist px-3 py-2.5 text-navy-900 outline-none focus:border-gold-500 focus:bg-white"
-                  >
-                    <option value="Life">Life</option>
-                    <option value="Annual">Annual</option>
-                    <option value="Student">Student</option>
-                    <option value="Corporate">Corporate</option>
-                    <option value="Honorary">Honorary</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-bold uppercase tracking-wider text-navy-900">Location / Area</label>
-                  <input
-                    type="text"
-                    value={editLocation}
-                    onChange={(e) => setEditLocation(e.target.value)}
-                    className="mt-1 w-full rounded-2xl border border-navy-200 bg-mist px-4 py-2.5 text-navy-900 outline-none focus:border-gold-500 focus:bg-white"
-                  />
-                </div>
+              {/* Location */}
+              <div>
+                <label className="block font-bold uppercase tracking-wider text-navy-900">Location / Area</label>
+                <input
+                  type="text"
+                  value={editLocation}
+                  onChange={(e) => setEditLocation(e.target.value)}
+                  className="mt-1 w-full rounded-2xl border border-navy-200 bg-mist px-4 py-2.5 text-navy-900 outline-none focus:border-gold-500 focus:bg-white"
+                />
               </div>
 
               {/* Validity Start & Validity End */}
@@ -2126,98 +1847,6 @@ export default function Admin() {
                     </label>
                   </div>
                 </div>
-              </div>
-
-              {/* Payment Details: Online or Cash */}
-              <div className="rounded-2xl border border-navy-100 bg-mist/60 p-4">
-                <label className="block font-bold uppercase tracking-wider text-navy-900">
-                  Payment Method
-                </label>
-                <div className="mt-2 grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setEditPaymentMethod('cash')}
-                    className={`flex items-center justify-center gap-2 rounded-xl py-2 text-xs font-bold transition-all ${
-                      editPaymentMethod === 'cash'
-                        ? 'bg-navy-900 text-white shadow-sm ring-2 ring-gold-400'
-                        : 'border border-navy-200 bg-white text-navy-900 hover:bg-navy-50'
-                    }`}
-                  >
-                    <span>💵 Cash</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setEditPaymentMethod('online')}
-                    className={`flex items-center justify-center gap-2 rounded-xl py-2 text-xs font-bold transition-all ${
-                      editPaymentMethod === 'online'
-                        ? 'bg-navy-900 text-white shadow-sm ring-2 ring-gold-400'
-                        : 'border border-navy-200 bg-white text-navy-900 hover:bg-navy-50'
-                    }`}
-                  >
-                    <span>💳 Online</span>
-                  </button>
-                </div>
-
-                {editPaymentMethod === 'online' ? (
-                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-navy-200/60 pt-3">
-                    <div>
-                      <label className="block font-bold uppercase tracking-wider text-navy-900">
-                        Transaction ID / Reference No.
-                      </label>
-                      <input
-                        type="text"
-                        value={editPaymentReference}
-                        onChange={(e) => setEditPaymentReference(e.target.value)}
-                        placeholder="e.g. UPI / UTR / TXN12345678"
-                        className="mt-1 w-full rounded-2xl border border-navy-200 bg-white px-4 py-2 text-xs text-navy-900 outline-none focus:border-gold-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold uppercase tracking-wider text-navy-900">
-                        Amount Paid (₹)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        value={editPaymentAmount}
-                        onChange={(e) => setEditPaymentAmount(e.target.value)}
-                        placeholder="e.g. 5000"
-                        className="mt-1 w-full rounded-2xl border border-navy-200 bg-white px-4 py-2 text-xs text-navy-900 outline-none focus:border-gold-500"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-navy-200/60 pt-3">
-                    <div>
-                      <label className="block font-bold uppercase tracking-wider text-navy-900">
-                        Cash Amount Collected (₹)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        value={editPaymentAmount}
-                        onChange={(e) => setEditPaymentAmount(e.target.value)}
-                        placeholder="e.g. 5000"
-                        className="mt-1 w-full rounded-2xl border border-navy-200 bg-white px-4 py-2 text-xs text-navy-900 outline-none focus:border-gold-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold uppercase tracking-wider text-navy-900">
-                        Cash Receipt / Voucher No. (Optional)
-                      </label>
-                      <input
-                        type="text"
-                        value={editPaymentReference}
-                        onChange={(e) => setEditPaymentReference(e.target.value)}
-                        placeholder="e.g. CASH-RCPT-2026-001"
-                        className="mt-1 w-full rounded-2xl border border-navy-200 bg-white px-4 py-2 text-xs text-navy-900 outline-none focus:border-gold-500"
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Admin Notes */}
