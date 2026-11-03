@@ -48,6 +48,82 @@ import type {
 
 type Tab = 'overview' | 'members' | 'payments' | 'notifications' | 'enquiries' | 'audit';
 
+const categoryChartColors = ['#0B1F4D', '#F0B429', '#34D399', '#8B5CF6', '#F97316', '#38BDF8', '#FB7185'];
+
+function CategoryPieChart({ data }: { data: Record<string, number> }) {
+  const entries = Object.entries(data).filter(([, value]) => value > 0);
+  const total = entries.reduce((sum, [, value]) => sum + value, 0);
+
+  if (!entries.length || total === 0) {
+    return null;
+  }
+
+  const radius = 52;
+  const circumference = 2 * Math.PI * radius;
+  let cumulative = 0;
+
+  const segments = entries.map(([label, value], index) => {
+    const start = cumulative / total;
+    const end = (cumulative + value) / total;
+    cumulative += value;
+
+    const length = (end - start) * circumference;
+    const color = categoryChartColors[index % categoryChartColors.length];
+
+    return {
+      label,
+      value,
+      color,
+      length,
+      offset: -start * circumference,
+    };
+  });
+
+  return (
+    <div className="grid gap-4 md:grid-cols-[180px_1fr]">
+      <div className="flex items-center justify-center">
+        <div className="relative flex h-36 w-36 items-center justify-center">
+          <svg viewBox="0 0 160 160" className="h-36 w-36 -rotate-90" aria-label="Members by category pie chart">
+            <circle cx="80" cy="80" r={radius} fill="none" stroke="#EAF0F7" strokeWidth="22" />
+            {segments.map((segment) => (
+              <circle
+                key={segment.label}
+                cx="80"
+                cy="80"
+                r={radius}
+                fill="none"
+                stroke={segment.color}
+                strokeWidth="22"
+                strokeLinecap="round"
+                strokeDasharray={`${segment.length} ${circumference - segment.length}`}
+                strokeDashoffset={segment.offset}
+              />
+            ))}
+          </svg>
+          <div className="absolute text-center">
+            <div className="text-xl font-black text-navy-900">{total}</div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-muted">Members</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {segments.map((segment) => (
+          <div key={segment.label} className="flex items-center justify-between rounded-2xl bg-mist px-3 py-2.5">
+            <div className="flex items-center gap-2.5">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: segment.color }} />
+              <span className="text-xs font-semibold text-navy-900">{segment.label}</span>
+            </div>
+            <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-navy-900 shadow-sm ring-1 ring-navy-100">
+              {segment.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Admin() {
   useDocumentTitle('Admin Portal - Membership & Operations Management');
 
@@ -1023,18 +1099,13 @@ export default function Admin() {
               <div className="grid gap-6 lg:grid-cols-2">
                 <div className="rounded-3xl bg-white p-6 shadow-card ring-1 ring-navy-100">
                   <h3 className="text-base font-bold text-navy-900">Members by Category</h3>
-                  <div className="mt-4 flex flex-col gap-3">
-                    {stats?.byCategory && Object.keys(stats.byCategory).length > 0 ? (
-                      Object.entries(stats.byCategory).map(([cat, count]) => (
-                        <div key={cat} className="flex items-center justify-between rounded-2xl bg-mist px-4 py-3">
-                          <span className="text-xs font-semibold text-navy-900">{cat} Membership</span>
-                          <span className="rounded-full bg-navy-900 px-3 py-1 text-xs font-bold text-white">{count}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted">No categorized members found.</p>
-                    )}
-                  </div>
+                  {stats?.byCategory && Object.keys(stats.byCategory).length > 0 ? (
+                    <div className="mt-4">
+                      <CategoryPieChart data={stats.byCategory} />
+                    </div>
+                  ) : (
+                    <p className="mt-4 text-sm text-muted">No categorized members found.</p>
+                  )}
                 </div>
 
                 <div className="rounded-3xl bg-white p-6 shadow-card ring-1 ring-navy-100">
