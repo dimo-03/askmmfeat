@@ -46,7 +46,13 @@ router.get('/site', (_req, res) => {
 });
 
 // ---------- Contact form ----------
-router.post('/contact', rateLimit({ windowMs: 60 * 60 * 1000, max: 5 }), (req, res) => {
+router.post('/contact', rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { errors: ['Too many contact submissions. Please wait a moment and try again.'] },
+}), (req, res) => {
   const b = (req.body ?? {}) as Record<string, unknown>;
   if (b.website) return res.json({ message: 'Thank you. We will reply soon.' }); // honeypot field
   const name = text(b.name), email = text(b.email), message = text(b.message);

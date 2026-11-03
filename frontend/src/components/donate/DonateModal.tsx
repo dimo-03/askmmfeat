@@ -23,13 +23,17 @@ export default function DonateModal({
       }
     };
 
-    const previousOverflow = document.body.style.overflow;
+    const root = document.documentElement;
+    const previousRootOverflow = root.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
 
+    root.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', handleKey);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      root.style.overflow = previousRootOverflow;
+      document.body.style.overflow = previousBodyOverflow;
       window.removeEventListener('keydown', handleKey);
     };
   }, [open, onClose]);
