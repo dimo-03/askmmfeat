@@ -1103,7 +1103,7 @@ adminRouter.get('/payments', (req, res) => {
 
   const clause = where.length ? 'WHERE ' + where.join(' AND ') : '';
   const rows = db.prepare(`
-    SELECT p.*, m.name as member_name, m.email as member_email
+    SELECT p.*, COALESCE(m.name, 'Direct donation') as member_name, COALESCE(m.email, 'donation@public') as member_email
     FROM payments p
     LEFT JOIN members m ON p.member_id = m.id
     ${clause}
