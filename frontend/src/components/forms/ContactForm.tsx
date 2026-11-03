@@ -292,7 +292,7 @@ export default function ContactForm() {
       {/* Thank You Success Popup */}
       {showThankYou && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-navy-950/75 p-4 backdrop-blur-sm"
+          className="fixed inset-x-0 bottom-0 top-20 z-20 flex items-center justify-center bg-navy-950/25 px-4 py-6 backdrop-blur-[2px]"
           role="presentation"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) {
@@ -305,7 +305,7 @@ export default function ContactForm() {
             aria-modal="true"
             aria-labelledby="thank-you-title"
             aria-describedby="thank-you-description"
-            className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-7 text-center shadow-2xl ring-1 ring-gold-300 sm:p-10"
+            className="relative z-30 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-7 text-center shadow-2xl ring-1 ring-gold-300 sm:p-10"
           >
             {/* Decorative top accent */}
             <div className="absolute left-0 top-0 h-1.5 w-full bg-gradient-to-r from-navy-900 via-gold-400 to-navy-900" />

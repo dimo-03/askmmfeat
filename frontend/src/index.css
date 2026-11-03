@@ -4,12 +4,28 @@
 
 @layer base {
   html {
+    width: 100%;
+    overflow-x: hidden;
     scroll-behavior: smooth;
   }
 
   body {
     @apply bg-white text-ink antialiased;
+    width: 100%;
+    overflow-x: hidden;
     line-height: 1.5;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  img,
+  svg,
+  iframe,
+  video {
+    display: block;
+    max-width: 100%;
   }
 
   h1,

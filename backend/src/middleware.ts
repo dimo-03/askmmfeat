@@ -190,9 +190,12 @@ export const sanitizeText = (input: unknown): string => {
  * Enforces admin authorization via JWT and rejects revoked tokens from the blacklist.
  */
 export const requireAdmin: RequestHandler = (req, res, next) => {
-  const authHeader = (req.headers.authorization || '').replace(/^Bearer /, '').trim();
-  const queryToken = typeof req.query.token === 'string' ? req.query.token.trim() : '';
-  const token = authHeader || queryToken;
+  const authHeader = req.headers.authorization || '';
+  if (!/^Bearer\s+/i.test(authHeader)) {
+    return res.status(401).json({ errors: ['Authorization token required. Please sign in.'] });
+  }
+
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
   if (!token) {
     return res.status(401).json({ errors: ['Authorization token required. Please sign in.'] });
   }
