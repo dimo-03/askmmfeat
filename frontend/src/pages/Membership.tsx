@@ -68,6 +68,7 @@ export default function Membership() {
   const [regAadhaarNumber, setRegAadhaarNumber] = useState('');
   const [regPanCard, setRegPanCard] = useState<File | null>(null);
   const [regAadhaarCard, setRegAadhaarCard] = useState<File | null>(null);
+  const [regPassword, setRegPassword] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
   const [regError, setRegError] = useState<string | null>(null);
@@ -135,6 +136,10 @@ export default function Membership() {
       setRegError('Enter a valid 12-digit Aadhaar number.');
       return;
     }
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(regPassword)) {
+      setRegError('Password must contain at least 8 characters, including uppercase, lowercase, number, and special character.');
+      return;
+    }
     if (!regPanCard) {
       setRegError('PAN card upload is required.');
       return;
@@ -162,6 +167,7 @@ export default function Membership() {
       formData.append('payment_method', regPaymentMethod);
       formData.append('pan_number', panNumber);
       formData.append('aadhaar_number', aadhaarNumber);
+      formData.append('password', regPassword);
       if (regPaymentMethod === 'online' && regPaymentReference.trim()) {
         formData.append('payment_reference', regPaymentReference.trim());
       }
@@ -201,6 +207,7 @@ export default function Membership() {
       setRegAadhaarNumber('');
       setRegPanCard(null);
       setRegAadhaarCard(null);
+      setRegPassword('');
     } catch (err) {
       setRegError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
     } finally {
@@ -985,6 +992,27 @@ export default function Membership() {
                             {file && <p className="mt-2 truncate text-[11px] text-gold-700">Selected: {file.name}</p>}
                           </div>
                         ))}
+                      </div>
+
+                      <div className="mt-5">
+                        <label className="block font-bold uppercase tracking-wider text-navy-900">
+                          Create Password *
+                        </label>
+                        <input
+                          type="password"
+                          required
+                          minLength={8}
+                          value={regPassword}
+                          onChange={(e) => setRegPassword(e.target.value)}
+                          pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}"
+                          title="Minimum 8 characters with uppercase, lowercase, number, and special character."
+                          placeholder="Create a strong password"
+                          autoComplete="new-password"
+                          className="mt-1.5 w-full rounded-2xl border border-navy-200 bg-mist px-4 py-3 text-xs text-navy-900 outline-none transition focus:border-gold-500 focus:bg-white"
+                        />
+                        <p className="mt-2 text-[11px] text-muted">
+                          Must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character.
+                        </p>
                       </div>
                     </div>
 
