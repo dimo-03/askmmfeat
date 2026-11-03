@@ -103,6 +103,25 @@ router.post('/donate/verify', (req, res) => {
   const expected = crypto.createHmac('sha256', secret).update(`${orderId}|${paymentId}`).digest('hex');
   const ok = sig.length === expected.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
   if (!ok) return res.status(400).json({ errors: ['Payment could not be verified.'] });
+
+  const donation = db.prepare('SELECT * FROM donations WHERE order_id = ?').get(orderId) as Donation | undefined;
+  if (donation) {
+    const donationMembershipId = `DONATION-${orderId}`;
+    const existingPayment = db.prepare('SELECT id FROM payments WHERE membership_id = ? OR reference_id = ? ORDER BY id DESC LIMIT 1').get(donationMembershipId, paymentId) as { id: number } | undefined;
+    if (!existingPayment) {
+      db.prepare(`
+        INSERT INTO payments (member_id, membership_id, method, amount, status, reference_id, notes)
+        VALUES (@member_id, @membership_id, 'online', @amount, 'Paid', @reference_id, @notes)
+      `).run({
+        member_id: null,
+        membership_id: donationMembershipId,
+        amount: donation.amount_paise / 100,
+        reference_id: paymentId,
+        notes: `Donation by ${donation.name} (${donation.email})`,
+      });
+    }
+  }
+
   db.prepare(`UPDATE donations SET status = 'paid', payment_id = ? WHERE order_id = ?`).run(paymentId, orderId);
   res.json({ message: 'Thank you for your donation.' });
 });
