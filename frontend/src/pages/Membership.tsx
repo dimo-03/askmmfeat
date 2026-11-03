@@ -225,20 +225,20 @@ export default function Membership() {
       />
 
       {/* Navigation Switch Bar */}
-      <section className="sticky top-20 z-20 border-b border-navy-100 bg-white/95 backdrop-blur-md shadow-xs">
-        <div className="container-x flex flex-wrap items-center justify-between gap-4 py-4">
-          <div className="flex items-center gap-2 rounded-2xl bg-mist p-1.5 ring-1 ring-navy-100">
+      <section className="sticky top-16 z-20 border-b border-navy-100 bg-white/95 shadow-xs backdrop-blur-md sm:top-20">
+        <div className="container-x flex min-w-0 flex-col items-stretch gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-4">
+          <div className="grid w-full min-w-0 grid-cols-2 gap-1 rounded-2xl bg-mist p-1 ring-1 ring-navy-100 sm:inline-flex sm:w-auto sm:gap-2 sm:p-1.5">
             <button
               onClick={() => setActiveTab('directory')}
-              className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 ${
+              className={`flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2 py-3 text-center text-[11px] font-bold leading-tight transition-all duration-200 sm:gap-2 sm:px-5 sm:py-2.5 sm:text-xs ${
                 activeTab === 'directory'
                   ? 'bg-navy-900 text-white shadow-md'
                   : 'text-navy-900 hover:text-navy-700'
               }`}
             >
               <Users className="h-4 w-4 text-gold-400" />
-              <span>Member Directory</span>
-              <span className="ml-1 rounded-full bg-navy-800 px-2 py-0.5 text-[10px] font-black text-gold-300">
+              <span className="min-w-0">Member Directory</span>
+              <span className="ml-0.5 shrink-0 rounded-full bg-navy-800 px-1.5 py-0.5 text-[9px] font-black text-gold-300 sm:ml-1 sm:px-2 sm:text-[10px]">
                 {totalMembers}
               </span>
             </button>
@@ -248,18 +248,18 @@ export default function Membership() {
                 setActiveTab('register');
                 setRegisteredSuccess(null);
               }}
-              className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 ${
+              className={`flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2 py-3 text-center text-[11px] font-bold leading-tight transition-all duration-200 sm:gap-2 sm:px-5 sm:py-2.5 sm:text-xs ${
                 activeTab === 'register'
                   ? 'bg-navy-900 text-white shadow-md'
                   : 'text-navy-900 hover:text-navy-700'
               }`}
             >
               <UserPlus className="h-4 w-4 text-gold-400" />
-              <span>Member Registration</span>
+              <span className="min-w-0">Member Registration</span>
             </button>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-medium text-muted">
+          <div className="flex items-center gap-2 px-1 text-[11px] font-medium text-muted sm:text-xs">
             <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100" />
             <span>Open for Memberships </span>
           </div>
@@ -267,15 +267,15 @@ export default function Membership() {
       </section>
 
       {/* Main Content Area */}
-      <main className="min-h-[600px] bg-mist/60 py-12 sm:py-16">
-        <div className="container-x">
+      <main className="min-h-[600px] overflow-x-clip bg-mist/60 py-6 sm:py-12 lg:py-16">
+        <div className="container-x min-w-0">
           {/* ============================================================= */}
           {/* TAB 1: MEMBER DIRECTORY                                       */}
           {/* ============================================================= */}
           {activeTab === 'directory' && (
             <div className="space-y-8">
               {/* Directory Filter & Search Header */}
-              <div className="rounded-3xl bg-white p-6 shadow-card ring-1 ring-navy-100">
+              <div className="rounded-3xl bg-white p-4 shadow-card ring-1 ring-navy-100 sm:p-6">
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                   {/* Search Bar */}
                   <form onSubmit={handleSearchSubmit} className="relative flex-1">
@@ -355,7 +355,7 @@ export default function Membership() {
                     return (
                       <div
                         key={member.id}
-                        className="group flex flex-col justify-between overflow-hidden rounded-3xl bg-white p-6 shadow-card ring-1 ring-navy-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
+                        className="group flex flex-col justify-between overflow-hidden rounded-3xl bg-white p-4 shadow-card ring-1 ring-navy-100 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
                       >
                         <div>
                           {/* Top Card: Photo & Status Badges */}
@@ -561,7 +561,7 @@ export default function Membership() {
                 </div>
               ) : (
                 /* Registration Form */
-                <div className="rounded-3xl bg-white p-6 shadow-card ring-1 ring-navy-100 sm:p-10">
+                <div className="rounded-3xl bg-white p-4 shadow-card ring-1 ring-navy-100 sm:p-6 sm:p-10">
                   <div className="border-b border-navy-100 pb-6">
                     <span className="rounded-full bg-gold-50 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-gold-700">
                       Official Enrolment
@@ -1034,19 +1034,22 @@ export default function Membership() {
 
                     {/* Submit Button */}
                     <div className="border-t border-navy-100 pt-6">
-                      <button
-                        type="submit"
-                        disabled={submitting}
-                        className="flex w-full items-center justify-center gap-2 rounded-full bg-navy-900 py-4 text-sm font-bold text-white shadow-lift transition duration-200 hover:-translate-y-0.5 hover:bg-navy-800 disabled:opacity-50"
-                      >
-                        {submitting ? (
-                          <RefreshCw className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <UserPlus className="h-4 w-4 text-gold-400" />
-                        )}
-                        <span>{submitting ? 'Submitting Application...' : 'Submit Membership Application'}</span>
-                      </button>
-                    </div>
+  <button
+    type="submit"
+    disabled={submitting}
+    className="flex w-full items-center justify-center gap-2 rounded-full bg-navy-900 px-3 py-3 text-xs font-bold text-white shadow-lift transition duration-200 hover:-translate-y-0.5 hover:bg-navy-800 disabled:opacity-50 sm:gap-2 sm:py-4 sm:text-sm"
+  >
+    {submitting ? (
+      <RefreshCw className="h-4 w-4 animate-spin" />
+    ) : (
+      <UserPlus className="h-4 w-4 flex-shrink-0 text-gold-400" />
+    )}
+
+    <span className="text-xs leading-tight sm:text-sm">
+      {submitting ? 'Submitting Application...' : 'Submit Membership Application'}
+    </span>
+  </button>
+</div>
                   </form>
                 </div>
               )}
