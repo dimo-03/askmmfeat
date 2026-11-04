@@ -297,6 +297,9 @@ export const api = {
       patchApi<{ success: boolean }>(`/admin/cms/enquiries/${id}/read`, { is_read }),
     deleteEnquiry: (id: number) =>
       deleteApi<{ success: boolean }>(`/admin/cms/enquiries/${id}`),
+    getGallery: () => getApi<ApiGalleryItem[]>('/admin/cms/gallery'),
+    createGalleryItem: (data: FormData) => uploadApi<ApiGalleryItem>('/admin/cms/gallery', data),
+    deleteGalleryItem: (id: number | string) => deleteApi<{ success: boolean }>(`/admin/cms/gallery/${id}`),
     getAuditLogs: (params?: Record<string, unknown>) =>
       getApi<{ total: number; page: number; limit: number; pages: number; logs: AuditLog[] }>('/admin/audit-logs', params),
     getExportCsvUrl: () => `${API_BASE_URL}/admin/members/export.csv`,
