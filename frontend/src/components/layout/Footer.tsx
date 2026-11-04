@@ -5,6 +5,7 @@ import { Button } from '@/components/common/Button';
 import SocialLinks from '@/components/common/SocialLinks';
 import { useDonateModal } from '@/hooks/useDonateModal';
 import { Heart, Mail, MapPin, Phone } from 'lucide-react';
+import iconns from "../../assets/icon.png";
 
 const legalLinks = [
   { label: 'Privacy Policy', to: '/privacy' },
@@ -87,7 +88,11 @@ export default function Footer() {
             onClick={openDonate}
             className="w-full sm:w-auto"
           >
-            <Heart className="h-4 w-4" aria-hidden="true" />
+            <img
+              src={iconns}
+              alt="Donate"
+              className="h-8 w-8 object-contain"
+            />
             Donate Now
           </Button>
         </div>

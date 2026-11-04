@@ -218,7 +218,7 @@ export default function Membership() {
   return (
     <>
       <PageHeader
-        title="Membership Portal"
+        title="Members Portal"
         description="Join an esteemed community of legal scholars, advocates, reformers, and community leaders dedicated to education, justice, empowerment, and public service."
         image="/second.png"
         crumbs={[{ label: 'Home', to: '/' }, { label: 'Membership' }]}
@@ -388,7 +388,7 @@ export default function Membership() {
                               </span>
 
                               {/* Membership Status Badge */}
-                              <span
+                              {/* <span
                                 className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                                   member.membership_status === 'Approved'
                                     ? 'bg-emerald-50 text-emerald-800'
@@ -398,7 +398,7 @@ export default function Membership() {
                                 }`}
                               >
                                 {member.membership_status}
-                              </span>
+                              </span> */}
                             </div>
                           </div>
 
