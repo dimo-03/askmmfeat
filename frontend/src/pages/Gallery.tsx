@@ -16,12 +16,14 @@ export default function Gallery() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const closeLightbox = useCallback(() => setActiveIndex(null), []);
 
-  useEffect(() => {
-    let isMounted = true;
+  const refreshGallery = useCallback(() => {
     api.gallery
       .getAll()
       .then((data) => {
-        if (!isMounted || !data || data.length === 0) return;
+        if (!data || data.length === 0) {
+          setGalleryList(GALLERY_ITEMS);
+          return;
+        }
         const mapped: GalleryItem[] = data.map((item) => ({
           src: item.photo,
           alt: item.caption || 'Foundation photograph',
@@ -30,12 +32,19 @@ export default function Gallery() {
         }));
         setGalleryList(mapped);
       })
-      .catch(() => {});
-
-    return () => {
-      isMounted = false;
-    };
+      .catch(() => {
+        setGalleryList(GALLERY_ITEMS);
+      });
   }, []);
+
+  useEffect(() => {
+    refreshGallery();
+    const onWindowFocus = () => refreshGallery();
+    window.addEventListener('focus', onWindowFocus);
+    return () => {
+      window.removeEventListener('focus', onWindowFocus);
+    };
+  }, [refreshGallery]);
 
   const items = useMemo(
     () => (filter === 'All' ? galleryList : galleryList.filter((item) => item.category === filter)),

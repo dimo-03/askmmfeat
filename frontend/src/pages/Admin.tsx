@@ -34,6 +34,7 @@ import useDocumentTitle from '@/hooks/useDocumentTitle';
 import api, { getAuthToken, setAuthToken } from '@/lib/api';
 import type {
   AdminStats,
+  ApiGalleryItem,
   AuditLog,
   Enquiry,
   FullMember,
@@ -41,7 +42,7 @@ import type {
   PublicMember,
 } from '@/types/api';
 
-type Tab = 'overview' | 'members' | 'payments' | 'notifications' | 'enquiries' | 'audit';
+type Tab = 'overview' | 'members' | 'payments' | 'notifications' | 'gallery' | 'enquiries' | 'audit';
 
 export default function Admin() {
   useDocumentTitle('Admin Portal - Membership & Operations Management');
@@ -119,6 +120,14 @@ export default function Admin() {
   const [selectedNotificationMembers, setSelectedNotificationMembers] = useState<string[]>([]);
   const [notificationHistory, setNotificationHistory] = useState<Array<{ id: number; title: string; message: string; audience: string; category: string | null; recipient_count: number; created_at: string }>>([]);
   const [notificationLoading, setNotificationLoading] = useState(false);
+
+  // Gallery Tab
+  const [galleryItems, setGalleryItems] = useState<ApiGalleryItem[]>([]);
+  const [galleryLoading, setGalleryLoading] = useState(false);
+  const [galleryCaption, setGalleryCaption] = useState('');
+  const [galleryAlbum, setGalleryAlbum] = useState('Community Programmes');
+  const [galleryPhoto, setGalleryPhoto] = useState<File | null>(null);
+  const [gallerySubmitting, setGallerySubmitting] = useState(false);
 
   // Enquiries Tab
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
@@ -215,6 +224,18 @@ export default function Admin() {
     }
   }, []);
 
+  const loadGallery = useCallback(async () => {
+    setGalleryLoading(true);
+    try {
+      const data = await api.admin.getGallery();
+      setGalleryItems(data);
+    } catch (err) {
+      setActionMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to load gallery' });
+    } finally {
+      setGalleryLoading(false);
+    }
+  }, []);
+
   const loadEnquiries = useCallback(async () => {
     setEnquiriesLoading(true);
     try {
@@ -245,9 +266,10 @@ export default function Admin() {
     if (activeTab === 'members') loadMembers();
     if (activeTab === 'payments') loadPayments();
     if (activeTab === 'notifications') loadNotifications();
+    if (activeTab === 'gallery') loadGallery();
     if (activeTab === 'enquiries') loadEnquiries();
     if (activeTab === 'audit') loadAuditLogs();
-  }, [token, activeTab, loadStats, loadMembers, loadPayments, loadNotifications, loadEnquiries, loadAuditLogs]);
+  }, [token, activeTab, loadStats, loadMembers, loadPayments, loadNotifications, loadGallery, loadEnquiries, loadAuditLogs]);
 
   const handleSendNotification = async (e: FormEvent) => {
     e.preventDefault();
@@ -453,6 +475,42 @@ export default function Admin() {
     }
   };
 
+  const handleCreateGalleryItem = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!galleryPhoto) {
+      setActionMessage({ type: 'error', text: 'Please choose a photo before adding it to the gallery.' });
+      return;
+    }
+    setGallerySubmitting(true);
+    try {
+      const fd = new FormData();
+      fd.append('caption', galleryCaption.trim());
+      fd.append('album', galleryAlbum.trim());
+      fd.append('photo', galleryPhoto);
+      await api.admin.createGalleryItem(fd);
+      setActionMessage({ type: 'success', text: 'Photo added to the gallery successfully.' });
+      setGalleryCaption('');
+      setGalleryAlbum('Community Programmes');
+      setGalleryPhoto(null);
+      await loadGallery();
+    } catch (err) {
+      setActionMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to add gallery photo' });
+    } finally {
+      setGallerySubmitting(false);
+    }
+  };
+
+  const handleDeleteGalleryItem = async (id: number | string) => {
+    if (!window.confirm('Delete this photo from the gallery?')) return;
+    try {
+      await api.admin.deleteGalleryItem(id);
+      setActionMessage({ type: 'success', text: 'Photo removed from the gallery.' });
+      setGalleryItems((prev) => prev.filter((photo) => photo.id !== Number(id)));
+    } catch (err) {
+      setActionMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to delete gallery photo' });
+    }
+  };
+
   const handleToggleEnquiryRead = async (enquiry: Enquiry) => {
     const next = enquiry.is_read === 1 ? 0 : 1;
     try {
@@ -516,6 +574,7 @@ export default function Admin() {
     { id: 'members', label: 'Members', icon: Users, count: stats?.total },
     { id: 'payments', label: 'Payments', icon: CreditCard, count: stats?.payments?.paid_count },
     { id: 'notifications', label: 'Notifications', icon: Bell, count: undefined },
+    { id: 'gallery', label: 'Gallery', icon: Plus, count: galleryItems.length || undefined },
     {
       id: 'enquiries',
       label: 'Enquiries',
@@ -826,7 +885,8 @@ export default function Admin() {
                 {activeTab === 'overview' && 'Dashboard Overview'}
                 {activeTab === 'members' && 'Member Directory'}
                 {activeTab === 'payments' && 'Payment Records'}
-                 {activeTab === 'notifications' && 'Notifications'}
+                {activeTab === 'notifications' && 'Notifications'}
+                {activeTab === 'gallery' && 'Gallery Manager'}
                 {activeTab === 'enquiries' && 'Inquiries & Messages'}
               </h2>
             </div>
@@ -1339,7 +1399,108 @@ export default function Admin() {
           )}
 
           {/* ========================================================= */}
-          {/* TAB 4: ENQUIRIES & CONTACT                                */}
+          {/* TAB 4: PUBLIC GALLERY MANAGEMENT                           */}
+          {/* ========================================================= */}
+          {activeTab === 'gallery' && (
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.95fr)]">
+              <div className="rounded-3xl bg-white p-5 shadow-card ring-1 ring-navy-100 sm:p-6">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-black text-navy-900">Gallery Manager</h3>
+                    <p className="mt-1 text-xs text-muted">Upload new public photos for the frontend gallery.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => loadGallery()}
+                    className="rounded-full border border-navy-200 bg-mist px-3 py-1.5 text-[11px] font-bold text-navy-900 transition hover:border-gold-500 hover:bg-white"
+                  >
+                    Refresh
+                  </button>
+                </div>
+
+                <form onSubmit={handleCreateGalleryItem} className="mt-5 grid gap-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="grid gap-2 text-xs font-bold text-navy-800">
+                      Caption
+                      <input
+                        value={galleryCaption}
+                        onChange={(e) => setGalleryCaption(e.target.value)}
+                        placeholder="e.g. Classroom learning session"
+                        className="rounded-xl border border-navy-200 px-4 py-3 text-sm outline-none focus:border-gold-500"
+                      />
+                    </label>
+                    <label className="grid gap-2 text-xs font-bold text-navy-800">
+                      Album
+                      <select
+                        value={galleryAlbum}
+                        onChange={(e) => setGalleryAlbum(e.target.value)}
+                        className="rounded-xl border border-navy-200 px-4 py-3 text-sm outline-none focus:border-gold-500"
+                      >
+                        <option value="Educational Programmes">Educational Programmes</option>
+                        <option value="Social Activities">Social Activities</option>
+                        <option value="Welfare Programmes">Welfare Programmes</option>
+                        <option value="Workshops and Training">Workshops and Training</option>
+                        <option value="Community Programmes">Community Programmes</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <label className="grid gap-2 text-xs font-bold text-navy-800">
+                    Photo
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={(e) => setGalleryPhoto(e.target.files?.[0] || null)}
+                      className="mt-1 block w-full text-xs text-muted file:mr-3 file:rounded-full file:border-0 file:bg-navy-900 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white hover:file:bg-navy-800"
+                    />
+                  </label>
+
+                  <button
+                    type="submit"
+                    disabled={gallerySubmitting || !galleryPhoto}
+                    className="flex items-center justify-center gap-2 rounded-full bg-navy-900 px-5 py-3 text-xs font-bold text-white transition hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {gallerySubmitting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4 text-gold-400" />}
+                    {gallerySubmitting ? 'Uploading...' : 'Add to Frontend Gallery'}
+                  </button>
+                </form>
+              </div>
+
+              <div className="rounded-3xl bg-white p-5 shadow-card ring-1 ring-navy-100 sm:p-6">
+                <h3 className="text-lg font-black text-navy-900">Current Gallery</h3>
+                {galleryLoading ? (
+                  <div className="mt-5 flex min-h-[180px] items-center justify-center text-sm text-muted">Loading photos...</div>
+                ) : galleryItems.length === 0 ? (
+                  <div className="mt-5 flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-navy-200 bg-mist text-sm text-muted">
+                    No gallery photos yet.
+                  </div>
+                ) : (
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    {galleryItems.map((item) => (
+                      <div key={item.id} className="overflow-hidden rounded-2xl border border-navy-100 bg-mist">
+                        <img src={item.photo} alt={item.caption || 'Gallery photo'} className="h-28 w-full object-cover" />
+                        <div className="space-y-2 p-3">
+                          <p className="text-xs font-bold text-navy-900">{item.caption || 'Untitled photo'}</p>
+                          <p className="text-[11px] text-muted">{item.album || 'Uncategorized'}</p>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteGalleryItem(item.id)}
+                            className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-bold text-red-700 transition hover:bg-red-100"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* TAB 5: ENQUIRIES & CONTACT                                */}
           {/* ========================================================= */}
           {activeTab === 'enquiries' && (
             <div className="flex flex-col gap-6">
