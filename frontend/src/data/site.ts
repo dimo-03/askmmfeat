@@ -58,7 +58,7 @@ export const NAV_LINKS: NavLink[] = [
   { label: 'Events', to: '/events' },
   { label: 'Gallery', to: '/gallery' },
   // { label: 'Impact', to: '/impact' },
-  { label: 'Membership', to: '/membership' },
+  { label: 'Members', to: '/membership' },
   { label: 'Get Involved', to: '/get-involved' },
   { label: 'Contact', to: '/contact' },
 ];
