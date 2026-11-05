@@ -27,11 +27,10 @@ import type {
 
 const TOKEN_KEY = 'askmm_auth_token';
 
-// Base URL resolution:
-// 1. If VITE_API_URL is set (e.g. in .env), use it with /api suffix.
-// 2. Otherwise default to '/api', which uses Vite's local dev server proxy (http://127.0.0.1:3000) or same-origin in production.
-const rawBaseUrl = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || '';
-export const API_BASE_URL = rawBaseUrl ? `${rawBaseUrl}/api` : '/api';
+// VITE_API_URL may be the backend origin or its /api URL.
+const configuredApiUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim().replace(/\/+$/, '') || '';
+const backendOrigin = configuredApiUrl.replace(/\/api$/i, '');
+export const API_BASE_URL = backendOrigin ? `${backendOrigin}/api` : '/api';
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -76,7 +75,7 @@ export function parseApiError(error: unknown, fallback = 'Request failed. Please
       return new Error('Request timed out. Please check your network connection.');
     }
     if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-      return new Error('Cannot reach backend server. Please ensure the backend is running on port 3000 (npm run dev:backend).');
+      return new Error('Cannot reach backend server. Please ensure the backend is running on port 3001 (npm run dev).');
     }
     if (error.message) {
       return new Error(error.message);

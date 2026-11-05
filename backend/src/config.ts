@@ -10,7 +10,7 @@ const list = (v: string | undefined, fallback: string): string[] =>
   (v || fallback).split(',').map(s => s.trim()).filter(Boolean);
 
 const isProd = env.NODE_ENV === 'production';
-const devFallbackOrigins = 'http://localhost:5173,http://localhost:4173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:4173,http://127.0.0.1:3000';
+const devFallbackOrigins = 'http://localhost:5173,http://localhost:4173,http://localhost:3001,http://127.0.0.1:5173,http://127.0.0.1:4173,http://127.0.0.1:3001';
 
 const secretIsSet = !!env.JWT_SECRET && !env.JWT_SECRET.startsWith('change-this');
 if (!secretIsSet && isProd) {
@@ -32,7 +32,7 @@ if (isProd && !corsOriginString) {
 }
 
 export const config = {
-  port: Number(env.PORT) || 3000,
+  port: Number(env.PORT) || 3001,
   jwtSecret: secretIsSet ? (env.JWT_SECRET as string) : 'dev-only-secret',
   adminUsername,
   adminPassword,

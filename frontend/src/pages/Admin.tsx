@@ -302,8 +302,8 @@ export default function Admin() {
       const res = await api.admin.login({ username: loginUsername.trim(), password: loginPassword });
       setAuthToken(res.token);
       setToken(res.token);
-      setAdminUser(res.user.username);
-      setActionMessage({ type: 'success', text: `Welcome back, ${res.user.username}!` });
+      setAdminUser(res.username);
+      setActionMessage({ type: 'success', text: `Welcome back, ${res.username}!` });
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : 'Invalid username or password');
     } finally {
@@ -610,7 +610,7 @@ export default function Admin() {
             <div className="mt-6 flex items-start gap-3 rounded-2xl bg-amber-50 p-4 text-xs font-medium text-amber-900 ring-1 ring-amber-200">
               <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
               <div>
-                <p className="font-bold">Backend Server Offline (Port 3000)</p>
+                <p className="font-bold">Backend Server Offline (Port 3001)</p>
                 <p className="mt-1 text-amber-800">
                   Please ensure your backend is running. Start it with{' '}
                   <code className="font-mono font-bold bg-amber-100 px-1 py-0.5 rounded">npm run dev</code> or{' '}
@@ -694,7 +694,7 @@ export default function Admin() {
           {backendOnline === true && (
             <div className="mt-3 flex items-center justify-center gap-2 text-[11px] font-semibold text-emerald-700">
               {/* <span className="h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-emerald-200" /> */}
-              {/* <span>Backend API Connected (Port 3000)</span> */}
+              {/* <span>Backend API Connected (Port 3001)</span> */}
             </div>
           )}
 

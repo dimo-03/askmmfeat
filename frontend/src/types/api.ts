@@ -151,10 +151,7 @@ export interface AdminLoginInput {
 
 export interface AdminLoginResponse {
   token: string;
-  user: {
-    id: number;
-    username: string;
-  };
+  username: string;
 }
 
 export interface AdminStats {
