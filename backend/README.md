@@ -12,7 +12,7 @@ npm install
 
 # 2. Run in development mode (auto-restarts on changes)
 npm run dev
-# Server runs on: http://localhost:3000
+# Server runs on: http://localhost:3001
 
 # 3. Run automated tests (CRUD & Payment methods)
 npm test
