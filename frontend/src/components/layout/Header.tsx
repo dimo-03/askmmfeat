@@ -6,6 +6,7 @@ import { Button } from '@/components/common/Button';
 import { useDonateModal } from '@/hooks/useDonateModal';
 import MobileMenu from '@/components/layout/MobileMenu';
 import api from '@/lib/api';
+import iconns from "../../assets/icon.png";
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   `relative whitespace-nowrap py-2 text-sm font-medium transition-colors duration-200 after:absolute after:-bottom-0.5 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-gold-400 after:transition-transform after:duration-300 hover:text-gold-300 hover:after:scale-x-100 ${
@@ -146,10 +147,19 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button variant="gold" size="md" onClick={openDonate} className="hidden flex-shrink-0 whitespace-nowrap sm:inline-flex">
-            <Heart className="h-4 w-4" aria-hidden="true" />
-            Donate Now
-          </Button>
+          <Button
+  variant="gold"
+  size="md"
+  onClick={openDonate}
+  className="hidden flex-shrink-0 whitespace-nowrap sm:inline-flex"
+>
+  <img
+    src={iconns}
+    alt="Donate"
+    className="h-8 w-8 shrink-0 object-contain"
+  />
+  Donate Now
+</Button>
           {memberLoggedIn && (
             <Link
               to="/member/notifications"

@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { ChevronDown, Heart } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 import { INITIATIVES, NAV_LINKS } from '@/data/site';
 import { Button } from '@/components/common/Button';
+import iconns from '../../assets/icon.png';
 
 interface MobileMenuProps {
   open: boolean;
@@ -64,7 +65,7 @@ export default function MobileMenu({ open, onNavigate, onDonate }: MobileMenuPro
             )
           )}
           <Button variant="gold" size="lg" onClick={onDonate} className="mt-3 w-full">
-            <Heart className="h-5 w-5" aria-hidden="true" />
+            <img src={iconns} alt="" aria-hidden="true" className="h-6 w-6 shrink-0 object-contain" />
             Donate Now
           </Button>
         </nav>
